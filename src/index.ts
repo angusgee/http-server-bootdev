@@ -3,6 +3,7 @@ import config from "./config.js";
 
 const app = express();
 const PORT = 8080;
+const MAXCHARS = 140;
 
 app.use(middlewareLogResponses);
 app.use(middlewareMetricsInc);
@@ -64,36 +65,24 @@ function resetMiddlewareCount(req: Request, res: Response): void {
     res.send(200).send('OK');
 }
 
-function validateChirp(req: Request, res: Response): void{
-    let body = "";
+// ensure message is not more than 140 chars
+function validateChirp(req: Request, res: Response): void {
+    type chirpMessage = {
+        body: string
+    }
+    
+    const messageBody: chirpMessage = req.body;
 
-    req.on("data", (chunk) => {
-        body += chunk;
-    })
-
-    req.on("end", () => {
-        try {
-            const parsedBody = JSON.parse(body);
-            if (parsedBody.body.length > 140) {
-                const chirpTooLongRes = {
-                    "error": "Chirp is too long"
-                  }
-                return res.status(400).send(JSON.stringify(chirpTooLongRes))
-            } else {
-                const successResponse = {
-                    "valid": true
-                  }
-                res.status(200).send(JSON.stringify(successResponse))
-            }           
-        } catch (error) {
-            const errorResponse = {
-                "error": "Something went wrong"
-              }
-            res.status(400).send(JSON.stringify(errorResponse));
-        }
-    })
+    if (messageBody.body.length > MAXCHARS) {
+        const chirpTooLongRes = {
+            "error": "Chirp is too long"
+          }
+        res.status(400).json(chirpTooLongRes);
+    } else {
+        const successResponse = {
+            "valid": true
+            }
+        res.status(200).json(successResponse);
+    }      
 }
-
-
-// TO-DO: refactor the app to use express.json instead
 

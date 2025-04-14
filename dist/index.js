@@ -5,6 +5,7 @@ const PORT = 8080;
 app.use(middlewareLogResponses);
 app.use(middlewareMetricsInc);
 app.use("/app", express.static("./src/app"));
+app.use(express.json());
 const server = app.listen(PORT, () => {
     console.log(`Server is running at http://localhost:${PORT}`);
 });
@@ -53,32 +54,17 @@ function resetMiddlewareCount(req, res) {
     res.send(200).send('OK');
 }
 function validateChirp(req, res) {
-    let body = "";
-    req.on("data", (chunk) => {
-        body += chunk;
-    });
-    req.on("end", () => {
-        try {
-            const parsedBody = JSON.parse(body);
-            if (parsedBody.body.length > 140) {
-                const chirpTooLongRes = {
-                    "error": "Chirp is too long"
-                };
-                return res.status(400).send(JSON.stringify(chirpTooLongRes));
-            }
-            else {
-                const successResponse = {
-                    "valid": true
-                };
-                res.status(200).send(JSON.stringify(successResponse));
-            }
-        }
-        catch (error) {
-            const errorResponse = {
-                "error": "Something went wrong"
-            };
-            res.status(400).send(JSON.stringify(errorResponse));
-        }
-    });
+    const messageBody = req.body;
+    if (messageBody.body.length > 140) {
+        const chirpTooLongRes = {
+            "error": "Chirp is too long"
+        };
+        res.status(400).json(chirpTooLongRes);
+    }
+    else {
+        const successResponse = {
+            "valid": true
+        };
+        res.status(200).json(successResponse);
+    }
 }
-// TO-DO: refactor the app to use express.json instead

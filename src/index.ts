@@ -73,14 +73,26 @@ function validateChirp(req: Request, res: Response): void {
     
     const messageBody: chirpMessage = req.body;
 
-    if (messageBody.body.length > MAXCHARS) {
+    // remove bad words
+    const words = messageBody.body.split(" ").map(word => {
+        if (word.toLowerCase().includes("kerfuffle") ||
+            word.toLowerCase().includes("sharbert") ||
+            word.toLowerCase().includes("fornax")) {
+            return "****";
+        }
+        return word;
+    })
+
+    const cleanedMessage = words.join(" ");
+
+    if (cleanedMessage.length > MAXCHARS) {
         const chirpTooLongRes = {
             "error": "Chirp is too long"
           }
         res.status(400).json(chirpTooLongRes);
     } else {
         const successResponse = {
-            "valid": true
+            "cleanedBody": cleanedMessage
             }
         res.status(200).json(successResponse);
     }      

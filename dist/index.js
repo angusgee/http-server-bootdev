@@ -2,6 +2,7 @@ import express from "express";
 import config from "./config.js";
 const app = express();
 const PORT = 8080;
+const MAXCHARS = 140;
 app.use(middlewareLogResponses);
 app.use(middlewareMetricsInc);
 app.use("/app", express.static("./src/app"));
@@ -51,11 +52,22 @@ function returnMiddlewareMetrics(req, res) {
 }
 function resetMiddlewareCount(req, res) {
     config.fileserverHits = 0;
-    res.send(200).send('OK');
+    res.status(200).send('OK');
 }
+// ensure message is not more than 140 chars
 function validateChirp(req, res) {
     const messageBody = req.body;
-    if (messageBody.body.length > 140) {
+    // remove bad words
+    const words = messageBody.body.split(" ").map(word => {
+        if (word.toLowerCase().includes("kerfuffle") ||
+            word.toLowerCase().includes("sharbert") ||
+            word.toLowerCase().includes("fornax")) {
+            return "****";
+        }
+        return word;
+    });
+    const cleanedMessage = words.join(" ");
+    if (cleanedMessage.length > MAXCHARS) {
         const chirpTooLongRes = {
             "error": "Chirp is too long"
         };
@@ -63,7 +75,7 @@ function validateChirp(req, res) {
     }
     else {
         const successResponse = {
-            "valid": true
+            "cleanedBody": cleanedMessage
         };
         res.status(200).json(successResponse);
     }

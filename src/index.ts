@@ -62,7 +62,7 @@ function returnMiddlewareMetrics(req: Request, res: Response): void {
 
 function resetMiddlewareCount(req: Request, res: Response): void {
     config.fileserverHits = 0;
-    res.send(200).send('OK');
+    res.status(200).send('OK');
 }
 
 // ensure message is not more than 140 chars

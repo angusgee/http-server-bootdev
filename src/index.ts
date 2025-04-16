@@ -22,6 +22,7 @@ app.get("/api/healthz", handleReadiness);
 app.post("/admin/reset", resetMiddlewareCount);
 app.get("/admin/metrics", returnMiddlewareMetrics);
 app.post("/api/validate_chirp", validateChirp);
+app.use(errorHandler);
 
 // return 200 in plain text for server health check
 function handleReadiness(req: Request, res: Response): void {
@@ -29,6 +30,18 @@ function handleReadiness(req: Request, res: Response): void {
     res.status(200).send('OK');
 }
 
+function errorHandler(
+    err: Error,
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    console.error(err);
+    res.status(500).json({
+      error: "Something went wrong on our end",
+    });
+  }
+  
 // log all non-200 responses: npm run dev | tee server.log
 function middlewareLogResponses(req: Request, res: Response, next: NextFunction): void{
     res.on("finish", () =>{
@@ -65,36 +78,41 @@ function resetMiddlewareCount(req: Request, res: Response): void {
     res.status(200).send('OK');
 }
 
-// ensure message is not more than 140 chars
-function validateChirp(req: Request, res: Response): void {
-    type chirpMessage = {
-        body: string
-    }
-    
-    const messageBody: chirpMessage = req.body;
+function validateChirp(
+    req: Request,
+    res: Response, 
+    next: NextFunction)
+    : void {
 
-    // remove bad words
-    const words = messageBody.body.split(" ").map(word => {
-        if (word.toLowerCase().includes("kerfuffle") ||
-            word.toLowerCase().includes("sharbert") ||
-            word.toLowerCase().includes("fornax")) {
-            return "****";
+    try {
+        type chirpMessage = {
+            body: string
         }
-        return word;
-    })
+        
+        const messageBody: chirpMessage = req.body;
 
-    const cleanedMessage = words.join(" ");
-
-    if (cleanedMessage.length > MAXCHARS) {
-        const chirpTooLongRes = {
-            "error": "Chirp is too long"
-          }
-        res.status(400).json(chirpTooLongRes);
-    } else {
-        const successResponse = {
-            "cleanedBody": cleanedMessage
+        // remove bad words
+        const words = messageBody.body.split(" ").map(word => {
+            if (word.toLowerCase().includes("kerfuffle") ||
+                word.toLowerCase().includes("sharbert") ||
+                word.toLowerCase().includes("fornax")) {
+                return "****";
             }
-        res.status(200).json(successResponse);
-    }      
-}
+            return word;
+        })
 
+        const cleanedMessage = words.join(" ");
+
+        // ensure message is not more than 140 chars
+        if (cleanedMessage.length > MAXCHARS) {
+            throw new Error();
+        } else {
+            const successResponse = {
+                "cleanedBody": cleanedMessage
+                }
+            res.status(200).json(successResponse);
+        }      
+        
+    } catch (err) {
+        next(err);
+}}

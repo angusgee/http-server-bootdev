@@ -23,12 +23,44 @@ function handleReadiness(req, res) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.status(200).send('OK');
 }
-function errorHandler(err, req, res, next) {
-    console.error(err);
-    res.status(500).json({
-        error: "Something went wrong on our end",
-    });
+//////////////// Error handling ///////////////////////////
+// handle 400
+class BadRequestError extends Error {
+    status;
+    constructor(message) {
+        super(message);
+        this.status = 400;
+        this.name = "BadRequestError";
+    }
 }
+// handle 401
+class UnauthorizedError extends Error {
+    constructor(message) {
+        super(message);
+    }
+}
+// handle 403
+class ForbiddenError extends Error {
+    constructor(message) {
+        super(message);
+    }
+}
+// handle 404
+class NotFoundError extends Error {
+    constructor(message) {
+        super(message);
+    }
+}
+function errorHandler(err, req, res, next) {
+    if (err instanceof BadRequestError) {
+        res.status(err.status).json({ error: err.message });
+    }
+    else {
+        console.error(err);
+        res.status(500);
+    }
+}
+//////////////// End error handling ///////////////////////////
 // log all non-200 responses: npm run dev | tee server.log
 function middlewareLogResponses(req, res, next) {
     res.on("finish", () => {
@@ -76,7 +108,7 @@ function validateChirp(req, res, next) {
         const cleanedMessage = words.join(" ");
         // ensure message is not more than 140 chars
         if (cleanedMessage.length > MAXCHARS) {
-            throw new Error();
+            throw new BadRequestError("Chirp is too long. Max length is 140");
         }
         else {
             const successResponse = {

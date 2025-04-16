@@ -3,7 +3,7 @@ import * as dotenv from "dotenv";
 
 dotenv.config();
 
-const connectionString = process.env.CONNECTION_STRING;
+const connectionString = process.env.DB_URL;
 
 if (!connectionString || connectionString === "") {
     throw new Error("Connection string env variable is not set")

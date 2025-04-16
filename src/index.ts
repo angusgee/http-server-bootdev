@@ -1,34 +1,21 @@
 import express, { NextFunction, Request, Response } from "express";
+import { handleReadiness } from "./api/readiness.js";
 import config from "./config.js";
 
 const app = express();
 const PORT = 8080;
 const MAXCHARS = 140;
 
+app.use(express.json());
 app.use(middlewareLogResponses);
 app.use(middlewareMetricsInc);
 app.use("/app", express.static("./src/app"));
-app.use(express.json());
-
-const server = app.listen(PORT, () => {
-    console.log(`Server is running at http://localhost:${PORT}`);
-});
-
-server.on('error', (error) => {
-    console.error('Server error:', error);
-});
-
 app.get("/api/healthz", handleReadiness);
 app.post("/admin/reset", resetMiddlewareCount);
 app.get("/admin/metrics", returnMiddlewareMetrics);
 app.post("/api/validate_chirp", validateChirp);
+app.post("/api/users", createNewUser);
 app.use(errorHandler);
-
-// return 200 in plain text for server health check
-function handleReadiness(req: Request, res: Response): void {
-    res.set('Content-Type', 'text/plain; charset=utf-8');
-    res.status(200).send('OK');
-}
 
 //////////////// Error handling ///////////////////////////
 
@@ -138,7 +125,6 @@ function validateChirp(
             }
             return word;
         })
-
         const cleanedMessage = words.join(" ");
 
         // ensure message is not more than 140 chars
@@ -154,3 +140,12 @@ function validateChirp(
     } catch (err) {
         next(err);
 }}
+
+function createNewUser(req: Request, res: Response): void{
+    
+}
+
+
+const server = app.listen(PORT, () => {
+    console.log(`Server is running at http://localhost:${PORT}`);
+});

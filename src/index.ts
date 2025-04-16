@@ -1,4 +1,5 @@
 import express, { NextFunction, Request, Response } from "express";
+import { middlewareLogResponse } from "./api/middleware.js";
 import { handleReadiness } from "./api/readiness.js";
 import config from "./config.js";
 
@@ -7,7 +8,7 @@ const PORT = 8080;
 const MAXCHARS = 140;
 
 app.use(express.json());
-app.use(middlewareLogResponses);
+app.use(middlewareLogResponse);
 app.use(middlewareMetricsInc);
 app.use("/app", express.static("./src/app"));
 app.get("/api/healthz", handleReadiness);
@@ -66,17 +67,6 @@ function errorHandler(
 
 //////////////// End error handling ///////////////////////////
 
-
-// log all non-200 responses: npm run dev | tee server.log
-function middlewareLogResponses(req: Request, res: Response, next: NextFunction): void{
-    res.on("finish", () =>{
-        const statusCode: number = res.statusCode;
-        if (statusCode != 200) {
-            console.log(`[NON-OK] ${req.method} ${req.url} - Status: ${statusCode}`);
-        }
-    })
-    next();
-}
 
 // increment count of hits to all endpoints apart from /metrics
 function middlewareMetricsInc(req: Request, res: Response, next: NextFunction): void {

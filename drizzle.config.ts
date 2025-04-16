@@ -5,7 +5,7 @@ dotenv.config();
 
 const connectionString = process.env.CONNECTION_STRING;
 
-if (!connectionString) {
+if (!connectionString || connectionString === "") {
     throw new Error("Connection string env variable is not set")
 }
 

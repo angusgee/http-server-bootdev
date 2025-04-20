@@ -2,6 +2,7 @@ import express, { NextFunction, Request, Response } from "express";
 import { middlewareLogResponse } from "./api/middleware.js";
 import { handleReadiness } from "./api/readiness.js";
 import config from "./config.js";
+import { createUser } from "./db/queries/users.js";
 
 const app = express();
 const PORT = 8080;
@@ -131,8 +132,18 @@ function validateChirp(
         next(err);
 }}
 
-function createNewUser(req: Request, res: Response): void{
-    
+async function createNewUser(req: Request, res: Response): Promise<void>{
+    console.log("Received request to create user");
+    const { email } = req.body;
+    console.log("Email from body:", email);
+    try {
+        const user = await createUser({ email });
+        console.log("User created:", user);
+        res.status(201).json(user);
+    } catch (err) {
+        console.error("Error creating user:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
 }
 
 

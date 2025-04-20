@@ -19,7 +19,7 @@ const migrationConfig: MigrationConfig = {
 
 const config:APIConfig = {
     db: {
-        url: process.env.DATABASE_URL || "",
+        url: process.env.DB_URL || "",
         migrationConfig,
       },
     fileserverHits: 0, 

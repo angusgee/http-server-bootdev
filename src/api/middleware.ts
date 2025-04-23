@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { config } from "../config";
+import { config } from "../config.js";
 import { respondWithError } from "./json.js";
 import {
   BadRequestError,

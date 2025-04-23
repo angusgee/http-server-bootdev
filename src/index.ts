@@ -5,13 +5,14 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { handleReadiness } from "./api/readiness.js";
 import { handlerMetrics } from "./api/metrics.js";
 import { handlerReset } from "./api/reset.js";
+import { handlerUsersCreate } from "./api/users.js";
 import {
   errorMiddleWare,
   middlewareLogResponse,
   middlewareMetricsInc,
 } from "./api/middleware.js";
 import { handlerChirpsValidate } from "./api/chirps.js";
-import { config } from "./config";
+import { config } from "./config.js";
 
 const migrationClient = postgres(config.db.url, { max: 1 });
 await migrate(drizzle(migrationClient), config.db.migrationConfig);
@@ -35,6 +36,10 @@ app.post("/admin/reset", (req, res, next) => {
 
 app.post("/api/validate_chirp", (req, res, next) => {
   Promise.resolve(handlerChirpsValidate(req, res)).catch(next);
+});
+
+app.post("/api/users", (req, res, next) => {
+  Promise.resolve(handlerUsersCreate(req, res)).catch(next);
 });
 
 app.use(errorMiddleWare);
